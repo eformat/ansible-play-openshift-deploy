@@ -1,0 +1,38 @@
+---
+
+- hosts: localhost
+  become: true
+  vars:
+    baseline_yum_required_packages:
+      - orgca5_ldap
+      - mlocate
+      - subscription-manager
+      - python-devel
+      - ansible
+    baseline_pip_required_packages:
+      - passlib
+      - cryptography
+      - htpasswd
+    docker_options: ""
+    activation_key: rhel7-qa-uc-instance
+    yum_update_all: False
+    subscription_repos:
+      - ORG_First_Party_Software_for_EL7_Tenable_Nessus_Agent_for_EL7
+      - ORG_First_Party_Software_for_EL7_ACE_Audit_Client_for_EL7
+      - rhel-7-server-rpms
+      - rhel-7-server-extras-rpms
+      - rhel-7-server-optional-rpms
+      - rhel-7-server-ansible-2.4-rpms
+    subscription_manager_force_register: True
+
+    # Add any repo you want to push to
+    docker_registries: []
+    insecure_docker_registries: 
+     - docker-registry-default.infraocr.vm.cbr.lab
+  roles: 
+    - pip
+    - satellite-sub
+    - baseline
+    - docker
+    - openstack-clients
+   

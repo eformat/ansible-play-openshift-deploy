@@ -1,0 +1,6 @@
+---
+plugin: openstack
+inventory_hostname: 'name'
+fail_on_errors: True
+expand_hostvars: True
+private: yes

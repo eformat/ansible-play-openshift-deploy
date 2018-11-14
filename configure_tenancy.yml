@@ -1,0 +1,8 @@
+---
+
+- hosts: all
+  roles:
+    - openstack-firewall
+  gather_facts: False
+
+

@@ -1,0 +1,40 @@
+---
+
+- name: set admins
+  hosts: masters
+  tags:
+    - set_admins
+  become: true
+  run_once: true
+  tasks:
+    - name: Login as system:admin in case of logout
+      shell: "/usr/local/bin/oc login -u system:admin"
+
+    - shell: "/usr/local/bin/oc adm policy add-cluster-role-to-user cluster-admin '{{ item }}'"
+      with_items:
+        - "lxjenki"
+        - "jcgunga"
+        - "admin9"
+        - "goosad"
+        - "camoon"
+
+- name: post deploy/maintenance  roles
+  hosts: masters
+  become: True
+  gather_facts: True
+  run_once: True
+  roles:
+    - auto-prune
+    - ose-master-config
+    - openshift-project
+    - role: namespace-quota
+      tags: quota
+    - role: openshift-svc-account
+      tags: 'svc-accounts'
+
+- name: nodes
+  hosts: all
+  become: True
+  roles: 
+    - { role: logrotate, tags: ['journald'] }
+ 

@@ -1,0 +1,10 @@
+---
+
+- name: update unbound
+  hosts: unbound
+  gather_facts: True
+  roles: 
+    - unbound
+
+  
+

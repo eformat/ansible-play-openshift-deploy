@@ -1,0 +1,62 @@
+- hosts: unbound
+  roles:
+    - unbound
+
+- hosts: all
+  become: True
+  gather_facts: True
+  roles:
+    - role: baseline
+      tags: 
+        - baseline
+        - subs
+    - role: logrotate
+      tags: journald
+    - role: nessus-agent
+      tags: nessus
+
+- hosts: OSEv3
+  roles:
+    - docker
+
+- hosts: masters new_masters
+  roles:
+    - netbackup-client
+    - ose-master-config
+
+- hosts: external_nfs
+  become: True
+  roles:
+    - { role: nfs-server, tags: ['nfs'] }
+
+- hosts: etcd
+  become: True
+  gather_facts: false
+  tags:
+    - etcd
+    - etcd_backup
+  tasks:
+    - name: Deploy etcd backup script to etcd hosts
+      copy:
+        src: backup_etcd.sh
+        dest: /root/backup_etcd.sh
+
+    - name: Enable cronjob for etcd backup
+      cron:
+        name: "etcd backup"
+        minute: 30
+        hour: 19
+        job: "/root/backup_etcd.sh"
+        state: present
+
+- hosts: proxies
+  become: True
+  roles:
+    - pip
+    - openstack-clients
+    - haproxy
+    - openstack-keepalived
+
+
+#- name: run openshift-ansible
+#  import_playbook: /usr/share/ansible/openshift-ansible/playbooks/byo/config.yml

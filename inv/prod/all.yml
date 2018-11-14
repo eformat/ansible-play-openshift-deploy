@@ -1,0 +1,60 @@
+all:
+ children:
+   openstack:
+     vars:
+  # floating ips are just defined here to match the entries in infoblox for external access
+  # not actually required from a paas-deployment perspective due to unbound
+       jumphost_fip: '192.168.59.63'
+       ansible_ssh_common_args: '-o ProxyCommand="ssh -W %h:%p -q {{ jumphost_fip }}"'
+     children:
+       OSEv3:
+         children:
+           nodes:
+             children:
+               masters:
+                 hosts: 
+                   master0[1:3]:
+               nodes_apps:
+                 hosts:
+                   apps0[1:9]:  
+               nodes_inf:
+                 hosts:
+                   infra0[1:4]:   
+           #new_nodes:
+           #  children:
+           #    new_nodes_inf:
+           #      hosts:
+           #        infra04:   
+           #OSEv3_new:
+           #  children:
+           #    new_nodes:
+           #      children:
+           #        new_masters:
+           #          hosts:
+           #        new_apps:
+           etcd:
+             children:
+               masters:
+           #new_etcd:
+           #  children:
+           #     new_masters:
+   #################
+   # above is used by openshift-ansible
+   # Everything below here is groups and config for managaing our own roles, 
+   # openshift ansible makes its own groups , instances in the nfs group are changed by openshift-ansible
+   # see /usr/share/ansible/openshift-ansible/playbooks/common/openshift-cluster/evaluate_groups.yml
+   # other non openshift-ansible groups
+       OSEv3_common:
+         children:
+           OSEv3:
+       external_nfs:
+         hosts:
+           nfs:
+       unbound:
+         hosts:
+           dns:
+            floating_ip: "{{ jumphost_fip }}"
+       proxies:
+         hosts:
+           proxy0[1:2]:
+ 

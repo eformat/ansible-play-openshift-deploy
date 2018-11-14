@@ -1,0 +1,45 @@
+---
+
+# requires serial for creating multiple new hosts using floating ips or server-groups
+# once created the serial part can be commented out
+- hosts: openstack
+  serial: 1
+  roles:
+    - { role: openstack-instance, tags: ['openstack'] }
+  gather_facts: False
+
+- hosts: unbound
+  name: update dns
+  gather_facts: True
+  pre_tasks:
+    - name: Refresh inventory to ensure new instances exist in inventory and can be added to dns
+      meta: refresh_inventory
+  roles:
+    - unbound
+
+# set up access
+- hosts: openstack
+  become: True
+#python-urllib3 causes issues, the version in rhel-7-server-rpms is old compared to everything else
+# it may come from openstack-10-tools or rhel-7-server-ose-3.x-rpms
+# side effect is updates fail when available repos change. biggest issue
+# is cloud-init which has it as a dependency
+#
+# This enables update all to work when openstack-10-tools repo has been removed :( 
+  vars:
+    subscription_manager_force_register: True
+    baseline_yum_absent_packages:
+      - python-urllib3
+    yum_update_all: True
+  roles: 
+    - role: auth
+      tags: access
+    - role: sshd
+      tags: access
+    - truststores
+    - logrotate
+    - satellite-sub
+    - baseline
+    - pip
+
+
